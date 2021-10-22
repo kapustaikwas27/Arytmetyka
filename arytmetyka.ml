@@ -1,7 +1,7 @@
 (******************************************)
 (*           ZADANIE ARYTMETYKA           *)
 (*        ROZWIAZANIE: MARCIN ZOLEK       *)
-(*          REVIEW: ADAM GRELOCH          *)
+(*          RIWJU: ADAM GRELOCH          *)
 (******************************************)
 
 (*                  TYPY                  *)
