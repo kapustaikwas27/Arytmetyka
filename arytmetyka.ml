@@ -113,7 +113,7 @@ let zmiana a b operacja = (* oblicza wynikowy przedzial dla danej operacji i dwo
                 sprawdz ogon oryginalna_lista
     in
  
-    let rec oblicz lista_a lista_b cala_lista_b lista_c = (* oblicza sume kazdego przedzialu z lista_a z kazdym przedzialem z lista_b *)
+    let rec oblicz lista_a lista_b cala_lista_b lista_c = (* oblicza wynik operacji kazdego przedzialu z lista_a z kazdym przedzialem z lista_b *)
         match (lista_a, lista_b) with 
         | ([], _) -> lista_c
         | (glowa_a::ogon_a, []) -> oblicz ogon_a cala_lista_b cala_lista_b lista_c
