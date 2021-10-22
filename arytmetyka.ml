@@ -246,3 +246,5 @@ let razy przedzial1 przedzial2 =
 let podzielic przedzial1 przedzial2 =
     zmiana przedzial1 przedzial2 dziel
 ;;
+
+(*                 KONIEC                 *)
