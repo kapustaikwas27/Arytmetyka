@@ -175,7 +175,7 @@ let zmiana a b operacja = (* oblicza wynikowy przedzial dla danej operacji i dwo
         
         match List.length zlaczona_lista with
         | 1 -> {jeden = (List.hd zlaczona_lista).jeden; dwa = (List.hd zlaczona_lista).dwa; ile = 1}
-        | 2 -> maksymalna_roznica (List.rev zlaczona_lista) 0.0 0.0
+        | _ -> maksymalna_roznica (List.rev zlaczona_lista) 0.0 0.0
 ;;
  
 (*              KONSTRUKTORY              *)         
