@@ -141,9 +141,10 @@ let zmiana a b operacja = (* oblicza wynikowy przedzial dla danej operacji i dwo
         else if (List.hd lista1).jeden >= poczatek && (List.hd lista1).jeden <= koniec then
                 lacz (List.tl lista1) poczatek (max koniec (List.hd lista1).dwa) lista2
         else
+            let glowa = List.hd lista1 in
             let ogon = List.tl lista1 in
             
-            lacz ogon (List.hd lista1).jeden (List.hd lista1).dwa ({jeden = poczatek; dwa = koniec; ile = 1}::lista2)
+            lacz ogon glowa.jeden glowa.dwa ({jeden = poczatek; dwa = koniec; ile = 1}::lista2)
     in
     
     (* glowny fragment sterujacy obliczaniem wyniku *)
@@ -164,8 +165,8 @@ let zmiana a b operacja = (* oblicza wynikowy przedzial dla danej operacji i dwo
         else 
             {jeden = (List.hd (List.tl zlaczona_lista)).dwa; dwa = (List.hd zlaczona_lista).jeden; ile = 2}
 ;;
-
-(*              KONSTUKTORY               *)         
+ 
+(*              KONSTRUKTORY              *)         
 
 let wartosc_dokladnosc x p =
     let przedzial1 = ((1.0 -. p /. 100.0) *. x) in
@@ -247,4 +248,4 @@ let podzielic przedzial1 przedzial2 =
     zmiana przedzial1 przedzial2 dziel
 ;;
 
-(*                 KONIEC                 *)
+(*                 KONIEC                 *) 
