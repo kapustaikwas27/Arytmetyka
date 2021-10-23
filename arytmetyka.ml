@@ -146,6 +146,19 @@ let zmiana a b operacja = (* oblicza wynikowy przedzial dla danej operacji i dwo
             
             lacz ogon glowa.jeden glowa.dwa ({jeden = poczatek; dwa = koniec; ile = 1}::lista2)
     in
+
+    let rec maksymalna_roznica lista wartosc1 wartosc2 = (* ta procedura oblicza maksymalna roznice miedzy kolejnymi przedzialami pojedynczymi dla zlaczona_lista *)
+        match lista with
+        | [] -> {jeden = wartosc1; dwa = wartosc2; ile = 2}
+        | glowa::[] -> {jeden = wartosc1; dwa = wartosc2; ile = 2} 
+        | glowa::ogon -> 
+            let nowa_roznica = (List.hd ogon).jeden -. glowa.dwa in
+            
+            if nowa_roznica > wartosc2 -. wartosc1 then
+                maksymalna_roznica ogon glowa.dwa (List.hd ogon).jeden
+            else
+                maksymalna_roznica ogon wartosc1 wartosc2
+    in
     
     (* glowny fragment sterujacy obliczaniem wyniku *)
     let lista_a = wrzuc a [] in (* lista_a zawiera jeden przedzial pojedynczy [a.jeden; a.dwa] lub [nan; nan] lub dwa przedzialy pojedyncze [-nieskonczonosc; a.jeden], [a.dwa; +nieskonczonosc] *)
@@ -158,12 +171,11 @@ let zmiana a b operacja = (* oblicza wynikowy przedzial dla danej operacji i dwo
         glowa
     else (* pozostale przypadki (posortowanie listy wynikowej, zlaczenie pokrywajacych sie przedzialow i zamiana listy wynikow na typ wartosc *)
         let posortowana_lista = List.sort porownaj lista_c in 
-        let zlaczona_lista = lacz posortowana_lista (List.hd posortowana_lista).jeden (List.hd posortowana_lista).dwa [] in (* zlaczona_lista moze miec dlugosc 1 lub 2 *)
+        let zlaczona_lista = lacz posortowana_lista (List.hd posortowana_lista).jeden (List.hd posortowana_lista).dwa [] in (* zlaczona_lista powinna miec dlugosc 1 lub 2 *)
         
-        if List.length zlaczona_lista = 1 then
-            {jeden = (List.hd zlaczona_lista).jeden; dwa = (List.hd zlaczona_lista).dwa; ile = 1}
-        else 
-            {jeden = (List.hd (List.tl zlaczona_lista)).dwa; dwa = (List.hd zlaczona_lista).jeden; ile = 2}
+        match List.length zlaczona_lista with
+        | 1 -> {jeden = (List.hd zlaczona_lista).jeden; dwa = (List.hd zlaczona_lista).dwa; ile = 1}
+        | 2 -> maksymalna_roznica (List.rev zlaczona_lista) 0.0 0.0
 ;;
  
 (*              KONSTRUKTORY              *)         
