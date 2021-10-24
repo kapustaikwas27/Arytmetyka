@@ -6,20 +6,33 @@
 
 (*                  TYPY                  *)
 
-type wartosc = {jeden: float; dwa: float; ile: int};; (* gdy ile = 1 typ wartosc reprezentuje przedzial pojedynczy [jeden; dwa], a gdy ile = 2 to przedzial podwojny [-nieskonczonosc; jeden] u [dwa; nieskonczonosc], natomiast ile >= 3 jest niepotrzebne *)
+(* gdy ile = 1 typ wartosc reprezentuje przedzial pojedynczy [jeden; dwa], a
+gdy ile = 2 to przedzial podwojny [-nieskonczonosc; jeden] u [dwa;
+nieskonczonosc], natomiast ile >= 3 jest niepotrzebne *)
+type wartosc = {jeden: float; dwa: float; ile: int};;
  
 (*          PROCEDURY POMOCNICZE          *)
 
-let dodaj a b = (* rozpisane przypadki dla dodawania dwoch przedzialow pojedynczych *)
+let dodaj a b =
+    (* rozpisane przypadki dla dodawania dwoch przedzialow pojedynczych *)
     {jeden = a.jeden +. b.jeden; dwa = a.dwa +. b.dwa; ile = 1}
 ;;
 
-let odejmij a b = (* rozpisane przypadki dla odejmowania dwoch przedzialow pojedynczych *)
+let odejmij a b =
+    (* rozpisane przypadki dla odejmowania dwoch przedzialow pojedynczych *)
     {jeden = a.jeden -. b.dwa; dwa = a.dwa -. b.jeden; ile = 1}
 ;;
 
-let mnoz a b = (* rozpisane przypadki dla mnozenia dwoch przedzialow pojedynczych *)
-    let gwiazdka x y = (* mnozenie dwoch liczb poszerzone o zasade 0 * (+/-)nieskonczonosc = 0 *)
+let mnoz a b =
+    (* rozpisane przypadki dla mnozenia dwoch przedzialow pojedynczych *)
+    let gwiazdka x y =
+        (* CR: mogles po prostu zdefiniowac funkcje
+         *     let ( *. ) a b =
+         *         ...
+         *     ;;
+         * Konieczne są spacje między nawiasami a gwiazdkami
+         *)
+        (* mnozenie dwoch liczb poszerzone o zasade 0 * (+/-)nieskonczonosc = 0 *)
         let typx = classify_float x in
         let typy = classify_float y in
     
@@ -40,7 +53,8 @@ let mnoz a b = (* rozpisane przypadki dla mnozenia dwoch przedzialow pojedynczyc
         if b.dwa <= 0.0 then
             {jeden = (gwiazdka a.dwa b.jeden); dwa = (gwiazdka a.jeden b.jeden); ile = 1}
         else if b.jeden < 0.0 && 0.0 < b.dwa then
-            {jeden = min (gwiazdka a.jeden b.dwa) (gwiazdka a.dwa b.jeden); dwa = max (gwiazdka a.jeden b.jeden) (gwiazdka a.dwa b.dwa); ile = 1}
+            {jeden = min (gwiazdka a.jeden b.dwa) (gwiazdka a.dwa b.jeden);
+            dwa = max (gwiazdka a.jeden b.jeden) (gwiazdka a.dwa b.dwa); ile = 1}
         else
             {jeden = (gwiazdka a.jeden b.dwa); dwa = (gwiazdka a.dwa b.dwa); ile = 1}
     else
@@ -52,7 +66,8 @@ let mnoz a b = (* rozpisane przypadki dla mnozenia dwoch przedzialow pojedynczyc
             {jeden = (gwiazdka a.jeden b.jeden); dwa = (gwiazdka a.dwa b.dwa); ile = 1}
 ;;
 
-let dziel a b = (* rozpisane przypadki dla dzielenia dwoch przedzialow pojedynczych *)
+let dziel a b =
+    (* rozpisane przypadki dla dzielenia dwoch przedzialow pojedynczych *)
     if b.jeden = 0.0 && b.dwa = 0.0 then
         {jeden = nan; dwa = nan; ile = 1}
     else if a.jeden = 0.0 && a.dwa = 0.0 then
@@ -92,8 +107,12 @@ let dziel a b = (* rozpisane przypadki dla dzielenia dwoch przedzialow pojedyncz
                 {jeden = a.jeden /. b.dwa; dwa = a.dwa /. b.jeden; ile = 1}
 ;;
 
-let zmiana a b operacja = (* oblicza wynikowy przedzial dla danej operacji i dwoch przedzialow (niekoniecznie pojedynczych) *)
-    let wrzuc a lista = (* umieszcza przedzial na liscie, jesli przedzial jest podwojny to dzieli go na dwa pojedyncze *)
+let zmiana a b operacja =
+    (* oblicza wynikowy przedzial dla danej operacji i dwoch przedzialow
+    (niekoniecznie pojedynczych) *)
+    let wrzuc a lista =
+        (* umieszcza przedzial na liscie, jesli przedzial jest podwojny to
+        dzieli go na dwa pojedyncze *)
         if a.ile = 1 then
             a::lista
         else
@@ -103,30 +122,47 @@ let zmiana a b operacja = (* oblicza wynikowy przedzial dla danej operacji i dwo
             c::b::lista
     in
     
-    let rec sprawdz aktualna_lista oryginalna_lista = (* poprawia przedzialy, ktore sa niepoprawne np. [nieskonczonosc; nieskonczonosc] *)
+    let rec sprawdz aktualna_lista oryginalna_lista =
+        (* poprawia przedzialy, ktore sa niepoprawne np. [nieskonczonosc; nieskonczonosc] *)
         match aktualna_lista with 
         | [] -> oryginalna_lista
         | glowa::ogon -> 
-            if classify_float glowa.jeden = FP_nan || classify_float glowa.dwa = FP_nan || (glowa.jeden = neg_infinity && glowa.dwa = neg_infinity) || (glowa.jeden = infinity && glowa.dwa = infinity) then
+            if classify_float glowa.jeden = FP_nan
+                (* CR: uzycie tu porownania:
+                 *     glowa = wartosc_dokladna neg_infinity
+                 * mogloby uprościć te warunki *)
+                || (glowa.jeden = neg_infinity && glowa.dwa = neg_infinity)
+                || (glowa.jeden = infinity && glowa.dwa = infinity) then
                 [{jeden = nan; dwa = nan; ile = 1}]
             else 
                 sprawdz ogon oryginalna_lista
     in
  
-    let rec oblicz lista_a lista_b cala_lista_b lista_c = (* oblicza wynik operacji kazdego przedzialu z lista_a z kazdym przedzialem z lista_b (lista_a, lista_b i wynikowa lista_c sklada sie wylacznie z przedzialow pojedynczych) *)
+    let rec oblicz lista_a lista_b cala_lista_b lista_c =
+        (* oblicza wynik operacji kazdego przedzialu z lista_a z kazdym
+        przedzialem z lista_b (lista_a, lista_b i wynikowa lista_c sklada sie
+        wylacznie z przedzialow pojedynczych) *)
         match (lista_a, lista_b) with 
         | ([], _) -> lista_c
         | (glowa_a::ogon_a, []) -> oblicz ogon_a cala_lista_b cala_lista_b lista_c
         | (glowa_a::ogon_a, glowa_b::ogon_b) -> 
             let przedzial = operacja glowa_a glowa_b in
             
-            if classify_float przedzial.jeden = FP_nan || classify_float przedzial.dwa = FP_nan || classify_float glowa_a.jeden = FP_nan || classify_float glowa_a.dwa = FP_nan || classify_float glowa_b.jeden = FP_nan || classify_float glowa_b.dwa = FP_nan then
+            if classify_float przedzial.jeden = FP_nan
+                (* CR: tu aż się prosi o zdefiniowanie funkcji is_nan() *)
+                || classify_float przedzial.dwa = FP_nan
+                || classify_float glowa_a.jeden = FP_nan
+                || classify_float glowa_a.dwa = FP_nan
+                || classify_float glowa_b.jeden = FP_nan
+                || classify_float glowa_b.dwa = FP_nan then
                 [{jeden = nan; dwa = nan; ile = 1}]
             else
                 oblicz lista_a ogon_b cala_lista_b ((wrzuc przedzial []) @ lista_c)
     in
     
-    let porownaj a b = (* komparator do sortowania przedzialow pojedynczych, potrzebny do sortowania niemalejaco po lewych koncach przedzialow *)
+    let porownaj a b =
+        (* komparator do sortowania przedzialow pojedynczych, potrzebny do
+        sortowania niemalejaco po lewych koncach przedzialow *)
         if a.jeden < b.jeden then
             -1
         else if a.jeden = b.jeden then
@@ -135,7 +171,12 @@ let zmiana a b operacja = (* oblicza wynikowy przedzial dla danej operacji i dwo
             1
     in
     
-    let rec lacz lista1 poczatek koniec lista2 = (* laczenie przedzialow (przedzialy, ktore maja niepuste przeciecie sa zamieniane w jeden przedzial bedacy ich suma) *)
+    (* CR: `open List` na początku kodu zwolniłoby z obowiązku pisania
+       nazwy modułu przy każdym wywołaniu. Zwiększyłoby czytelność *)
+
+    let rec lacz lista1 poczatek koniec lista2 =
+        (* laczenie przedzialow (przedzialy, ktore maja niepuste przeciecie sa
+        zamieniane w jeden przedzial bedacy ich suma) *)
         if lista1 = [] then
             {jeden = poczatek; dwa = koniec; ile = 1}::lista2
         else if (List.hd lista1).jeden >= poczatek && (List.hd lista1).jeden <= koniec then
@@ -147,7 +188,9 @@ let zmiana a b operacja = (* oblicza wynikowy przedzial dla danej operacji i dwo
             lacz ogon glowa.jeden glowa.dwa ({jeden = poczatek; dwa = koniec; ile = 1}::lista2)
     in
 
-    let rec maksymalna_roznica lista wartosc1 wartosc2 = (* ta procedura oblicza maksymalna roznice miedzy kolejnymi przedzialami pojedynczymi dla zlaczona_lista *)
+    let rec maksymalna_roznica lista wartosc1 wartosc2 =
+        (* ta procedura oblicza maksymalna roznice miedzy kolejnymi
+        przedzialami pojedynczymi dla zlaczona_lista *)
         match lista with
         | [] -> {jeden = wartosc1; dwa = wartosc2; ile = 2}
         | glowa::[] -> {jeden = wartosc1; dwa = wartosc2; ile = 2} 
@@ -161,17 +204,32 @@ let zmiana a b operacja = (* oblicza wynikowy przedzial dla danej operacji i dwo
     in
     
     (* glowny fragment sterujacy obliczaniem wyniku *)
-    let lista_a = wrzuc a [] in (* lista_a zawiera jeden przedzial pojedynczy [a.jeden; a.dwa] lub [nan; nan] lub dwa przedzialy pojedyncze [-nieskonczonosc; a.jeden], [a.dwa; +nieskonczonosc] *)
+
+    let lista_a = wrzuc a [] in
+    (* lista_a zawiera jeden przedzial pojedynczy [a.jeden; a.dwa] lub [nan;
+    nan] lub dwa przedzialy pojedyncze [-nieskonczonosc; a.jeden], [a.dwa;
+    +nieskonczonosc] *)
+
     let lista_b = wrzuc b [] in (* analogicznie do lista_a *)
-    let lista_pom = oblicz lista_a lista_b lista_b [] in (* lista_pom zawiera listę przedzialow pojedynczych o dlugosci maksymalnie 8, przedzialy te moga sie pokrywac *)
+
+    let lista_pom = oblicz lista_a lista_b lista_b [] in
+    (* lista_pom zawiera listę przedzialow pojedynczych o dlugosci maksymalnie
+    8, przedzialy te moga sie pokrywac *)
+
     let lista_c = sprawdz lista_pom lista_pom in 
+
     let glowa = List.hd lista_c in 
     
-    if classify_float glowa.jeden = FP_nan || classify_float glowa.dwa = FP_nan || (glowa.jeden = neg_infinity && glowa.dwa = infinity) then (* przypadki [-nieskonczonsc; nieskonczonosc] lub [nan; nan] *)
+    if classify_float glowa.jeden = FP_nan || (glowa.jeden = neg_infinity && glowa.dwa = infinity) then
+        (* przypadki [-nieskonczonosc; nieskonczonosc] lub [nan; nan] *)
         glowa
-    else (* pozostale przypadki (posortowanie listy wynikowej, zlaczenie pokrywajacych sie przedzialow i zamiana listy wynikow na typ wartosc *)
+    else
+        (* pozostale przypadki (posortowanie listy wynikowej, zlaczenie
+        pokrywajacych sie przedzialow i zamiana listy wynikow na typ wartosc *)
         let posortowana_lista = List.sort porownaj lista_c in 
-        let zlaczona_lista = lacz posortowana_lista (List.hd posortowana_lista).jeden (List.hd posortowana_lista).dwa [] in (* zlaczona_lista powinna miec dlugosc 1 lub 2 *)
+
+        let zlaczona_lista = lacz posortowana_lista (List.hd posortowana_lista).jeden (List.hd posortowana_lista).dwa [] in
+        (* zlaczona_lista powinna miec dlugosc 1 lub 2 *)
         
         match List.length zlaczona_lista with
         | 1 -> {jeden = (List.hd zlaczona_lista).jeden; dwa = (List.hd zlaczona_lista).dwa; ile = 1}
@@ -198,24 +256,16 @@ let wartosc_dokladna x =
 (*                SELEKTORY               *)  
 
 let in_wartosc a x =
-    if a.ile = 1 then 
-        if x >= a.jeden && x <= a.dwa then
-            true
-        else
-            false
+    if a.ile = 1 then
+        x >= a.jeden && x <= a.dwa
     else
-        if x <= a.jeden || x >= a.dwa then
-            true
-        else
-            false
+        x <= a.jeden || x >= a.dwa
 ;;
 
 let min_wartosc a =
     let typ1 = classify_float a.jeden in
     
-    if typ1 = FP_nan then
-        nan
-    else if a.ile = 2 || typ1 = FP_infinite then
+    if a.ile = 2 || typ1 = FP_infinite then
         neg_infinity
     else 
         a.jeden
@@ -224,19 +274,14 @@ let min_wartosc a =
 let max_wartosc a =
     let typ2 = classify_float a.dwa in
     
-    if typ2 = FP_nan then
-        nan
-    else if a.ile = 2 || typ2 = FP_infinite then
+    if a.ile = 2 || typ2 = FP_infinite then
         infinity
     else 
         a.dwa
 ;;
 
 let sr_wartosc a =
-    let typ1 = classify_float a.jeden in
-    let typ2 = classify_float a.dwa in
-        
-    if a.ile = 2 || typ1 = FP_nan || typ2 = FP_nan || (typ1 = FP_infinite && typ2 = FP_infinite) then
+    if a.ile = 2 then
         nan
     else
         (a.jeden +. a.dwa) /. 2.0
